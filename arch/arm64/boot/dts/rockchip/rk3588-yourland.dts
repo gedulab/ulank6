@@ -922,8 +922,41 @@
        };
 };
 
+/* ARMOFF_DDRPD keeps the logic domain powered: without this rail the board does not wake. */
+&vdd_log_s0 {
+	regulator-state-mem {
+		/delete-property/ regulator-off-in-suspend;
+		regulator-on-in-suspend;
+		regulator-suspend-microvolt = <750000>;
+	};
+};
+
+/*
+ * The AP6275S Wi-Fi/Bluetooth module depends on this rail in deep sleep.
+ * With it cut, the module does not answer after resume.
+ */
+&vcc_1v8_cam_s0 {
+	regulator-state-mem {
+		/delete-property/ regulator-off-in-suspend;
+		regulator-on-in-suspend;
+		regulator-suspend-microvolt = <1800000>;
+	};
+};
+
 &rockchip_suspend {
 	rockchip,sleep-debug-en = <0>;
+	/*
+	 * Keep the logic domain powered in deep sleep. Under the default
+	 * ARMOFF_LOGOFF the AP6275S's Bluetooth does not survive suspend.
+	 */
+	rockchip,sleep-mode-config = <
+		(0
+		| RKPM_SLP_ARMOFF_DDRPD
+		| RKPM_SLP_PMU_PMUALIVE_32K
+		| RKPM_SLP_PMU_DIS_OSC
+		| RKPM_SLP_32K_EXT
+		)
+	>;
 	status="okay";
 };
 
