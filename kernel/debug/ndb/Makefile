@@ -1,0 +1,1 @@
+obj-y := ndb.o kgb.o

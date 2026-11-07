@@ -115,7 +115,8 @@
 #include <kunit/test.h>
 
 static int kernel_init(void *);
-
+extern int ndb_init(int level);
+extern void ndb_check_breakin(void);
 /*
  * Debug helper: via this flag we know that we are in 'early bootup code'
  * where only the boot processor is running with IRQ disabled.  This means
@@ -933,6 +934,7 @@ void start_kernel(void)
 	 */
 	boot_cpu_init();
 	page_address_init();
+	ndb_init(0); // static alloc only, alloc page caused panic on 2024-5-15
 	pr_notice("%s", linux_banner);
 	setup_arch(&command_line);
 	/* Static keys and static calls are needed by LSMs */
@@ -1071,7 +1073,8 @@ void start_kernel(void)
 		      panic_param);
 
 	lockdep_init();
-
+	ndb_init(1);  // fixed map is available
+		      //
 	/*
 	 * Need to run this when irqs are enabled, because it wants
 	 * to self-test [hard/soft]-irqs on/off lock inversion bugs
